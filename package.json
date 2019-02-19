@@ -1,0 +1,29 @@
+{
+  "name": "basic-ext",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:background": "cd src/background && gulp",
+    "build:injected": "cd src/injected && gulp",
+    "build:popup": "cd src/popup && gulp",
+    "build": "npm-run-all --series build:*"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "browserify": "^16.2.3",
+    "del": "^3.0.0",
+    "gulp": "^4.0.0",
+    "gulp-htmlmin": "^5.0.1",
+    "gulp-rename": "^1.4.0",
+    "gulp-sass": "^4.0.2",
+    "gulp-sourcemaps": "^2.6.4",
+    "gulp-uglify": "^3.0.1",
+    "tsify": "^4.0.1",
+    "typescript": "^3.3.3",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0"
+  }
+}

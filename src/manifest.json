@@ -1,0 +1,34 @@
+{
+  "manifest_version": 2,
+  "name": "chrome-extension-seed",
+  "version": "1.0.0",
+  "description": "a basic seed for a chrome extension",
+  "browser_action": {
+    "default_title": "Chrome Extension Seed",
+    "default_popup": "popup/popup.html",
+    "default_icon": "icon.png"
+  },
+  "background": {
+    "scripts": [
+      "background/background-bundle.js"
+    ],
+    "persistent": false
+  },
+  "commands": {},
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*/*",
+        "http://*/*"
+      ],
+      "js": [
+        "injected/injected-bundle.js"
+      ],
+      "css": [
+        "injected/injected-styles.css"
+      ]
+    }
+  ],
+  "homepage_url": "https://github.com/albertpatterson/webpack-chrome-extension-seed",
+  "permissions": []
+}

@@ -1,8 +1,11 @@
 module.exports = function (prefix, task_factory) {
-  task_factory.clean(prefix, ["dist/popup"]);
-  task_factory.sass(prefix, 'src/popup/styles/**/*.scss', "dist/popup/", "popup-styles.css");
-  task_factory.html(prefix, 'src/popup/popup.html', 'dist/popup');
-  task_factory.ts(prefix, "./", ["src/popup/main/main.ts"], "dist/popup", "popup-bundle.js");
+
+  const buildDir = "dist/unpacked/popup/";
+
+  task_factory.clean(prefix, [buildDir]);
+  task_factory.sass(prefix, 'src/popup/styles/**/*.scss', buildDir, "popup-styles.css");
+  task_factory.html(prefix, 'src/popup/popup.html', buildDir);
+  task_factory.ts(prefix, "./", ["src/popup/main/main.ts"], buildDir, "popup-bundle.js");
 
   task_factory.test(prefix, ["src/popup/test/**/*.ts"]);
   task_factory.lint(prefix, ["src/popup/**/*.ts"]);

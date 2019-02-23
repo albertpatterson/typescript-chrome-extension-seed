@@ -11,6 +11,7 @@ const uglify = require('gulp-uglify');
 const gulp = require('gulp');
 const mocha = require('gulp-mocha');
 const tslint = require('gulp-tslint');
+const gzip = require('gulp-zip');
 
 function makePrefixer(prefix) {
   return name => `${prefix}_${name}`;
@@ -80,13 +81,25 @@ const task_factory = {
         }))
         .pipe(tslint.report())
     );
+  },
+
+  copy: function (prefix, srcs, dest) {
+    return gulp.task(makePrefixer(prefix)("copy"), () =>
+      gulp.src(srcs).pipe(gulp.dest(dest)));
   }
 }
 
-const popupPrefix = "popup";
-const popupPrefixer = makePrefixer(popupPrefix);
-require("./src/popup/gulptasks")(popupPrefix, task_factory);
-const popupDefault = popupPrefixer("default");
+function createGulpTasks(prefix, gulptaskRegister) {
+  gulptaskRegister(prefix, task_factory);
+  const prefixer = makePrefixer(prefix);
+  return {
+    prefixer: prefixer,
+    default: prefixer("default")
+  };
+}
+
+
+const { prefixer: popupPrefixer, default: popupDefault } = createGulpTasks("popup", require("./src/popup/gulptasks"));
 gulp.task(popupDefault, gulp.series(
   popupPrefixer("clean"),
   gulp.parallel(
@@ -94,37 +107,36 @@ gulp.task(popupDefault, gulp.series(
     popupPrefixer("html"),
     popupPrefixer("ts"))));
 
-
-const injectedPrefix = "injected";
-const injectedPrefixer = makePrefixer(injectedPrefix);
-require("./src/injected/gulptasks")(injectedPrefix, task_factory);
-const injectedDefault = injectedPrefixer("default");
+const { prefixer: injectedPrefixer, default: injectedDefault } = createGulpTasks("injected", require("./src/injected/gulptasks"));
 gulp.task(injectedDefault, gulp.series(
   injectedPrefixer("clean"),
   gulp.parallel(
     injectedPrefixer("sass"),
     injectedPrefixer("ts"))));
 
-
-const backgroundPrefix = "background";
-const backgroundPrefixer = makePrefixer(backgroundPrefix);
-require("./src/background/gulptasks")(backgroundPrefix, task_factory);
-const backgroundDefault = backgroundPrefixer("default");
+const { prefixer: backgroundPrefixer, default: backgroundDefault } = createGulpTasks("background", require("./src/background/gulptasks"));
 gulp.task(backgroundDefault, gulp.series(
   backgroundPrefixer("clean"),
   gulp.parallel(
     backgroundPrefixer("ts"))));
 
-const prefixers = [popupPrefixer, injectedPrefixer, backgroundPrefixer];
+const { prefixer: manifestPrefixer, default: manifestDefault } = createGulpTasks("manifest", require("./src/gulptasks"));
+gulp.task(manifestDefault, gulp.series(
+  manifestPrefixer("clean"),
+  manifestPrefixer("copy")));
 
+const prefixers = [popupPrefixer, injectedPrefixer, backgroundPrefixer];
 const lintNames = prefixers.map(f => f("lint"));
 gulp.task("lint", gulp.series.apply(null, lintNames));
 
 const testNames = prefixers.map(f => f("test"));
 gulp.task("test", gulp.series.apply(null, testNames));
 
-
-gulp.task("copy-manifest", () => gulp.src(["src/manifest.json", "src/icon.png"]).pipe(gulp.dest("dist")))
+gulp.task('zip', function () {
+  return gulp.src(['dist/unpacked/**'])
+    .pipe(gzip('extension.zip'))
+    .pipe(gulp.dest('dist'))
+})
 
 gulp.task("default",
   gulp.series(
@@ -133,6 +145,7 @@ gulp.task("default",
       popupDefault,
       injectedDefault,
       backgroundDefault,
-      "copy-manifest"),
+      manifestDefault),
     "lint",
+    "zip"
   ));

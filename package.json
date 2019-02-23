@@ -26,6 +26,7 @@
     "gulp-sourcemaps": "^2.6.4",
     "gulp-tslint": "^8.1.4",
     "gulp-uglify": "^3.0.1",
+    "gulp-zip": "^4.2.0",
     "mocha": "^6.0.1",
     "ts-node": "^8.0.2",
     "tsify": "^4.0.1",

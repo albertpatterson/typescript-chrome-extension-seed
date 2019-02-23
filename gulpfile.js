@@ -9,6 +9,8 @@ const buffer = require('vinyl-buffer');
 const sourcemaps = require('gulp-sourcemaps');
 const uglify = require('gulp-uglify');
 const gulp = require('gulp');
+const mocha = require('gulp-mocha');
+const tslint = require('gulp-tslint');
 
 function makePrefixer(prefix) {
   return name => `${prefix}_${name}`;
@@ -59,6 +61,26 @@ const task_factory = {
         .pipe(sourcemaps.write())
         .pipe(gulp.dest(dist)))
   },
+
+  test: function (prefix, testSrcs) {
+    return gulp.task(makePrefixer(prefix)("test"), () => {
+      return gulp.src(testSrcs, { read: false })
+        .pipe(mocha({
+          reporter: 'spec',
+          require: ['ts-node/register']
+        }));
+    })
+  },
+
+  lint: function (prefix, srcs) {
+    return gulp.task(makePrefixer(prefix)("lint"), () =>
+      gulp.src(srcs)
+        .pipe(tslint({
+          formatter: "verbose"
+        }))
+        .pipe(tslint.report())
+    );
+  }
 }
 
 const popupPrefix = "popup";
@@ -93,7 +115,24 @@ gulp.task(backgroundDefault, gulp.series(
   gulp.parallel(
     backgroundPrefixer("ts"))));
 
+const prefixers = [popupPrefixer, injectedPrefixer, backgroundPrefixer];
+
+const lintNames = prefixers.map(f => f("lint"));
+gulp.task("lint", gulp.series.apply(null, lintNames));
+
+const testNames = prefixers.map(f => f("test"));
+gulp.task("test", gulp.series.apply(null, testNames));
+
 
 gulp.task("copy-manifest", () => gulp.src(["src/manifest.json", "src/icon.png"]).pipe(gulp.dest("dist")))
 
-gulp.task("default", gulp.parallel(popupDefault, injectedDefault, backgroundDefault, "copy-manifest"));
+gulp.task("default",
+  gulp.series(
+    "test",
+    gulp.parallel(
+      popupDefault,
+      injectedDefault,
+      backgroundDefault,
+      "copy-manifest"),
+    "lint",
+  ));

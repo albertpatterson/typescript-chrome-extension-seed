@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig",
   "files": [
-    "scripts/*.ts",
-    "scripts/**/*.ts"
+    "main/*.ts",
+    "main/**/*.ts"
   ]
 }

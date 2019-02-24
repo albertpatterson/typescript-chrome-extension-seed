@@ -5,6 +5,9 @@
         "tslint-no-unused-expression-chai"
     ],
     "jsRules": {},
-    "rules": {},
+    "rules": {
+        // recommended quotemark rule conflicts with clang format
+        "quotemark": false
+    },
     "rulesDirectory": []
 }

@@ -1,8 +1,9 @@
-import { expect } from "chai";
-import "mocha";
+import 'mocha';
 
-describe("background module", () => {
-  it("should have a passing get", () => {
+import {expect} from 'chai';
+
+describe('background module', () => {
+  it('should have a passing get', () => {
     expect(true).to.be.true;
   });
 });

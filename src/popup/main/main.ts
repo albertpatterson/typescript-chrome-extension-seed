@@ -1,1 +1,1 @@
-document.write("hello from ts");
+document.write('hello from ts');

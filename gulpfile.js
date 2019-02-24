@@ -12,11 +12,11 @@ const gulp = require('gulp');
 const mocha = require('gulp-mocha');
 const tslint = require('gulp-tslint');
 const gzip = require('gulp-zip');
+const watch = require('gulp-watch');
 
 function makePrefixer(prefix) {
   return name => `${prefix}_${name}`;
 }
-
 
 const task_factory = {
   clean: function (prefix, dists) {
@@ -59,7 +59,6 @@ const task_factory = {
         .pipe(gulp.dest(dists));
     });
   },
-
 
   _tsInit: function (project, entries, name) {
     return browserify({
@@ -116,6 +115,13 @@ const task_factory = {
   copy: function (prefix, srcs, dest) {
     return gulp.task(makePrefixer(prefix)("copy"), () =>
       gulp.src(srcs).pipe(gulp.dest(dest)));
+  },
+
+  watch: function (prefix, srcs, tasks) {
+    const prefixer = makePrefixer(prefix);
+    const watchTasks = tasks.map(prefixer);
+    return gulp.task(makePrefixer(prefix)("watch"), () =>
+      watch(srcs, gulp.series.apply(null, watchTasks)));
   }
 }
 
@@ -128,7 +134,6 @@ function createGulpTasks(prefix, gulptaskRegister) {
     prod: prefixer("prod")
   };
 }
-
 
 const {
   prefixer: popupPrefixer,
@@ -192,6 +197,9 @@ gulp.task("lint", gulp.series.apply(null, lintNames));
 
 const testNames = prefixers.map(f => f("test"));
 gulp.task("test", gulp.series.apply(null, testNames));
+
+const watchNames = prefixers.map(f => f("watch"));
+gulp.task("watch", gulp.parallel.apply(null, watchNames));
 
 gulp.task('zip', function () {
   return gulp.src(['dist/unpacked/**'])

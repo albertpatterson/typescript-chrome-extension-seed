@@ -28,4 +28,6 @@ module.exports = function (prefix, task_factory) {
 
   task_factory.test(prefix, ["src/injected/test/**/*.ts"]);
   task_factory.lint(prefix, ["src/injected/**/*.ts"]);
+
+  task_factory.watch(prefix, ["src/injected/**/*"], ["test", "default", "lint"]);
 }

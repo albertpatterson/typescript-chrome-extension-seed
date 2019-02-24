@@ -19,4 +19,6 @@ module.exports = function (prefix, task_factory) {
 
   task_factory.test(prefix, ["src/background/test/**/*.ts"]);
   task_factory.lint(prefix, ["src/background/**/*.ts"]);
+
+  task_factory.watch(prefix, ["src/background/**/*"], ["test", "default", "lint"]);
 }

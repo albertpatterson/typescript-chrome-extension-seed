@@ -32,4 +32,6 @@ module.exports = function (prefix, task_factory) {
 
   task_factory.test(prefix, ["src/popup/test/**/*.ts"]);
   task_factory.lint(prefix, ["src/popup/**/*.ts"]);
+
+  task_factory.watch(prefix, ["src/popup/**/*"], ["test", "default", "lint"]);
 }

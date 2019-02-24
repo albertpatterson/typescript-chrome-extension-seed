@@ -4,11 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build:background": "cd src/background && gulp",
-    "build:injected": "cd src/injected && gulp",
-    "build:popup": "cd src/popup && gulp",
-    "build": "npm-run-all --series build:*"
+    "build": "gulp default",
+    "build-prod": "gulp prod",
+    "compile": "gulp compile",
+    "compile-prod": "gulp compile-prod",
+    "test": "gulp test",
+    "lint": "gulp lint"
   },
   "author": "",
   "license": "ISC",

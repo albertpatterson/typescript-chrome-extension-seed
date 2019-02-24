@@ -25,41 +25,71 @@ const task_factory = {
     })
   },
 
+  _sass: function (sassConfig, srcs, dist, name) {
+    return gulp.src(srcs)
+      .pipe(sass(sassConfig).on('error', sass.logError))
+      .pipe(rename(name))
+      .pipe(gulp.dest(dist));
+  },
+
+
   sass: function (prefix, srcs, dist, name) {
     gulp.task(makePrefixer(prefix)("sass"), function () {
-      return gulp.src(srcs)
-        .pipe(sass({ outputStyle: 'compressed' }).on('error', sass.logError))
-        .pipe(rename(name))
-        .pipe(gulp.dest(dist));
+      return task_factory._sass({}, srcs, dist, name);
+    });
+  },
+
+  sassProd: function (prefix, srcs, dist, name) {
+    gulp.task(makePrefixer(prefix)("sass-prod"), function () {
+      return task_factory._sass({ outputStyle: 'compressed' }, srcs, dist, name);
     });
   },
 
   html: function (prefix, src, dists) {
     gulp.task(makePrefixer(prefix)("html"), () => {
       return gulp.src(src)
+        .pipe(gulp.dest(dists));
+    });
+  },
+
+  htmlProd: function (prefix, src, dists) {
+    gulp.task(makePrefixer(prefix)("html-prod"), () => {
+      return gulp.src(src)
         .pipe(htmlmin({ collapseWhitespace: true }))
         .pipe(gulp.dest(dists));
     });
   },
 
+
+  _tsInit: function (project, entries, name) {
+    return browserify({
+      basedir: '.',
+      debug: true,
+      entries: entries,
+      cache: {},
+      packageCache: {}
+    })
+      .plugin(
+        tsify,
+        { "project": project })
+      .bundle()
+      .pipe(source(name))
+      .pipe(buffer())
+  },
+
   ts: function (prefix, project, entries, dist, name) {
     return gulp.task(makePrefixer(prefix)("ts"), () =>
-      browserify({
-        basedir: '.',
-        debug: true,
-        entries: entries,
-        cache: {},
-        packageCache: {}
-      })
-        .plugin(
-          tsify,
-          { "project": project })
-        .bundle()
-        .pipe(source(name))
-        .pipe(buffer())
+      task_factory._tsInit(project, entries, name)
         .pipe(sourcemaps.init({ loadMaps: true }))
         .pipe(uglify())
         .pipe(sourcemaps.write())
+        .pipe(gulp.dest(dist)))
+  },
+
+  tsProd: function (prefix, project, entries, dist, name) {
+    return gulp.task(makePrefixer(prefix)("ts-prod"), () =>
+      task_factory._tsInit(project, entries, name)
+        .pipe(uglify())
         .pipe(gulp.dest(dist)))
   },
 
@@ -94,33 +124,64 @@ function createGulpTasks(prefix, gulptaskRegister) {
   const prefixer = makePrefixer(prefix);
   return {
     prefixer: prefixer,
-    default: prefixer("default")
+    default: prefixer("default"),
+    prod: prefixer("prod")
   };
 }
 
 
-const { prefixer: popupPrefixer, default: popupDefault } = createGulpTasks("popup", require("./src/popup/gulptasks"));
+const {
+  prefixer: popupPrefixer,
+  default: popupDefault,
+  prod: popupProd
+} = createGulpTasks("popup", require("./src/popup/gulptasks"));
 gulp.task(popupDefault, gulp.series(
   popupPrefixer("clean"),
   gulp.parallel(
     popupPrefixer("sass"),
     popupPrefixer("html"),
     popupPrefixer("ts"))));
+gulp.task(popupProd, gulp.series(
+  popupPrefixer("clean"),
+  gulp.parallel(
+    popupPrefixer("sass-prod"),
+    popupPrefixer("html-prod"),
+    popupPrefixer("ts-prod"))));
 
-const { prefixer: injectedPrefixer, default: injectedDefault } = createGulpTasks("injected", require("./src/injected/gulptasks"));
+const {
+  prefixer: injectedPrefixer,
+  default: injectedDefault,
+  prod: injectedProd
+} = createGulpTasks("injected", require("./src/injected/gulptasks"));
 gulp.task(injectedDefault, gulp.series(
   injectedPrefixer("clean"),
   gulp.parallel(
     injectedPrefixer("sass"),
     injectedPrefixer("ts"))));
+gulp.task(injectedProd, gulp.series(
+  injectedPrefixer("clean"),
+  gulp.parallel(
+    injectedPrefixer("sass-prod"),
+    injectedPrefixer("ts-prod"))));
 
-const { prefixer: backgroundPrefixer, default: backgroundDefault } = createGulpTasks("background", require("./src/background/gulptasks"));
+const {
+  prefixer: backgroundPrefixer,
+  default: backgroundDefault,
+  prod: backgroundProd
+} = createGulpTasks("background", require("./src/background/gulptasks"));
 gulp.task(backgroundDefault, gulp.series(
   backgroundPrefixer("clean"),
   gulp.parallel(
     backgroundPrefixer("ts"))));
+gulp.task(backgroundProd, gulp.series(
+  backgroundPrefixer("clean"),
+  gulp.parallel(
+    backgroundPrefixer("ts-prod"))));
 
-const { prefixer: manifestPrefixer, default: manifestDefault } = createGulpTasks("manifest", require("./src/gulptasks"));
+const {
+  prefixer: manifestPrefixer,
+  default: manifestDefault
+} = createGulpTasks("manifest", require("./src/gulptasks"));
 gulp.task(manifestDefault, gulp.series(
   manifestPrefixer("clean"),
   manifestPrefixer("copy")));
@@ -138,14 +199,32 @@ gulp.task('zip', function () {
     .pipe(gulp.dest('dist'))
 })
 
+gulp.task(
+  "compile",
+  gulp.parallel(
+    popupDefault,
+    injectedDefault,
+    backgroundDefault,
+    manifestDefault));
+
+gulp.task(
+  "compile-prod",
+  gulp.parallel(
+    popupProd,
+    injectedProd,
+    backgroundProd,
+    manifestDefault));
+
 gulp.task("default",
   gulp.series(
-    "test",
-    gulp.parallel(
-      popupDefault,
-      injectedDefault,
-      backgroundDefault,
-      manifestDefault),
-    "lint",
-    "zip"
-  ));
+    "test", // test is performed via ts-node (not against transpiled js)
+    "compile",
+    "lint",// tslint recommends building before linting
+    "zip"));
+
+gulp.task("prod",
+  gulp.series(
+    "test", // test is performed via ts-node (not against transpiled js)
+    "compile-prod",
+    "lint",// tslint recommends building before linting
+    "zip"));

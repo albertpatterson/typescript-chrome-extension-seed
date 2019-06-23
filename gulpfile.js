@@ -13,10 +13,18 @@ const mocha = require('gulp-mocha');
 const tslint = require('gulp-tslint');
 const gzip = require('gulp-zip');
 const watch = require('gulp-watch');
+const Server = require('karma').Server;
+const karmaConfig = require('./karma.conf');
 
 function makePrefixer(prefix) {
   return name => `${prefix}_${name}`;
 }
+
+const fullSuitekarmaOpts = {
+  files: [],
+  taskDefined: false,
+};
+
 
 const task_factory =
     {
@@ -98,6 +106,43 @@ const task_factory =
           return gulp.src(testSrcs, {read: false})
               .pipe(mocha({reporter: 'spec', require: ['ts-node/register']}));
         })
+      },
+
+      testKarma: function(prefix, files) {
+        gulp.task(makePrefixer(prefix)('test'), (done) => {
+          karmaConfig.clearFiles();
+          karmaConfig.addFiles(files);
+
+          new Server(
+              {
+                configFile: __dirname + '/karma.conf.js',
+                singleRun: true,
+              },
+              () => {
+                done();
+              })
+              .start();
+        });
+
+
+        fullSuitekarmaOpts.files.push(...files);
+        if (fullSuitekarmaOpts.taskDefined) return;
+
+        fullSuitekarmaOpts.taskDefined = true;
+        gulp.task('karma', (done) => {
+          karmaConfig.clearFiles();
+          karmaConfig.addFiles(fullSuitekarmaOpts.files);
+
+          new Server(
+              {
+                configFile: __dirname + '/karma.conf.js',
+                singleRun: true,
+              },
+              () => {
+                done();
+              })
+              .start();
+        });
       },
 
       lint: function(prefix, srcs) {
@@ -193,7 +238,11 @@ const lintNames = prefixers.map(f => f('lint'));
 gulp.task('lint', gulp.series.apply(null, lintNames));
 
 const testNames = prefixers.map(f => f('test'));
-gulp.task('test', gulp.series.apply(null, testNames));
+if (fullSuitekarmaOpts.taskDefined) {
+  testNames.unshift('karma');
+}
+// gulp.task('test', gulp.series.apply(null, testNames));
+gulp.task('test', gulp.series('karma', 'background_test'));
 
 const watchNames = prefixers.map(f => f('watch'));
 gulp.task('watch', gulp.parallel.apply(null, watchNames));

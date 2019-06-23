@@ -15,7 +15,9 @@ module.exports = function(prefix, task_factory) {
       prefix, './', ['src/injected/main/main.ts'], buildDir,
       'injected-bundle.js');
 
-  task_factory.test(prefix, ['src/injected/test/**/*.ts']);
+  const testFiles =
+      ['main/**/*.ts', 'test/**/*Spec.ts'].map(f => `${__dirname}/${f}`);
+  task_factory.testKarma(prefix, testFiles);
   task_factory.lint(prefix, ['src/injected/**/*.ts']);
 
   task_factory.watch(

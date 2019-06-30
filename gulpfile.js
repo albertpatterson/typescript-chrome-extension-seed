@@ -128,8 +128,6 @@ const task_factory = {
     fullSuitekarmaOpts.files.push(...files);
     if (!fullSuitekarmaOpts.taskDefined) {
       this._setupKarmaTest('karma', fullSuitekarmaOpts.files);
-      this._setupKarmaTest(
-          'karma-travis', fullSuitekarmaOpts.files, {browsers: ['Firefox']});
       fullSuitekarmaOpts.taskDefined = true;
     }
   },
@@ -227,7 +225,6 @@ const lintNames = prefixers.map(f => f('lint'));
 gulp.task('lint', gulp.series.apply(null, lintNames));
 
 gulp.task('test', gulp.series('karma', 'background_test'));
-gulp.task('test-travis', gulp.series('karma-travis', 'background_test'))
 
 const watchNames = prefixers.map(f => f('watch'));
 gulp.task('watch', gulp.parallel.apply(null, watchNames));

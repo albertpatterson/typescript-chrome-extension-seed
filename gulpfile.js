@@ -9,7 +9,6 @@ const buffer = require('vinyl-buffer');
 const sourcemaps = require('gulp-sourcemaps');
 const uglify = require('gulp-uglify');
 const gulp = require('gulp');
-const mocha = require('gulp-mocha');
 const tslint = require('gulp-tslint');
 const gzip = require('gulp-zip');
 const watch = require('gulp-watch');
@@ -20,7 +19,7 @@ function makePrefixer(prefix) {
   return name => `${prefix}_${name}`;
 }
 
-const fullSuitekarmaOpts = {
+const fullTestSuiteOpts = {
   files: [],
   taskDefined: false,
 };
@@ -99,14 +98,7 @@ const task_factory = {
                   .pipe(gulp.dest(dist)))
   },
 
-  test: function(prefix, testSrcs) {
-    return gulp.task(makePrefixer(prefix)('test'), () => {
-      return gulp.src(testSrcs, {read: false})
-          .pipe(mocha({reporter: 'spec', require: ['ts-node/register']}));
-    })
-  },
-
-  _setupKarmaTest: function(name, files, opts) {
+  _setupTest: function(name, files, opts) {
     opts = opts || {};
 
     gulp.task(name, (done) => {
@@ -122,13 +114,13 @@ const task_factory = {
     });
   },
 
-  testKarma: function(prefix, files) {
-    this._setupKarmaTest(makePrefixer(prefix)('test'), files);
+  test: function(prefix, files) {
+    this._setupTest(makePrefixer(prefix)('test'), files);
 
-    fullSuitekarmaOpts.files.push(...files);
-    if (!fullSuitekarmaOpts.taskDefined) {
-      this._setupKarmaTest('karma', fullSuitekarmaOpts.files);
-      fullSuitekarmaOpts.taskDefined = true;
+    fullTestSuiteOpts.files.push(...files);
+    if (!fullTestSuiteOpts.taskDefined) {
+      this._setupTest('test', fullTestSuiteOpts.files);
+      fullTestSuiteOpts.taskDefined = true;
     }
   },
 
@@ -223,8 +215,6 @@ gulp.task(
 const prefixers = [popupPrefixer, injectedPrefixer, backgroundPrefixer];
 const lintNames = prefixers.map(f => f('lint'));
 gulp.task('lint', gulp.series.apply(null, lintNames));
-
-gulp.task('test', gulp.series('karma', 'background_test'));
 
 const watchNames = prefixers.map(f => f('watch'));
 gulp.task('watch', gulp.parallel.apply(null, watchNames));

@@ -9,10 +9,10 @@ module.exports = function(createTaskFactory) {
       taskFactory.copy(['src/manifest.json', 'src/icon.png'], buildDir);
 
   const compileTask =
-      taskFactory.compile((series, paralell) => series(cleanTask, copyTask));
+      taskFactory.compile((series, parallel) => series(cleanTask, copyTask));
 
   const compileProdTask = taskFactory.compileProd(
-      (series, paralell) => series(cleanTask, copyTask));
+      (series, parallel) => series(cleanTask, copyTask));
 
   taskFactory.watch(['src/*'], [compileTask]);
 }

@@ -16,11 +16,10 @@ module.exports = function(createTaskFactory) {
   const lintTask = taskFactory.lint(['src/background/**/*.ts']);
 
   const compileTask =
-      taskFactory.compile((series, paralell) => series(cleanTask, tsTask));
+      taskFactory.compile((series, parallel) => series(cleanTask, tsTask));
 
   const compileProdTask = taskFactory.compileProd(
-      (series, paralell) => series(cleanTask, tsProdTask));
-
+      (series, parallel) => series(cleanTask, tsProdTask));
 
   taskFactory.watch(['src/background/**/*'], [testTask, compileTask, lintTask]);
 }

@@ -1,25 +1,33 @@
-module.exports = function(prefix, task_factory) {
+module.exports = function(createTaskFactory) {
+  const taskFactory = createTaskFactory('injected');
+
   const buildDir = 'dist/unpacked/injected';
 
-  task_factory.clean(prefix, [buildDir]);
+  const cleanTask = taskFactory.clean([buildDir]);
 
-  task_factory.sass(
-      prefix, 'src/injected/styles/**/*.scss', buildDir, 'injected-styles.css');
-  task_factory.sassProd(
-      prefix, 'src/injected/styles/**/*.scss', buildDir, 'injected-styles.css');
+  const sassTask = taskFactory.sass(
+      'src/injected/styles/**/*.scss', buildDir, 'injected-styles.css');
+  const sassProdTask = taskFactory.sassProd(
+      'src/injected/styles/**/*.scss', buildDir, 'injected-styles.css');
 
-  task_factory.ts(
-      prefix, './', ['src/injected/main/main.ts'], buildDir,
-      'injected-bundle.js');
-  task_factory.tsProd(
-      prefix, './', ['src/injected/main/main.ts'], buildDir,
-      'injected-bundle.js');
+  const tsTask = taskFactory.ts(
+      './', ['src/injected/main/main.ts'], buildDir, 'injected-bundle.js');
+  const tsProdTask = taskFactory.tsProd(
+      './', ['src/injected/main/main.ts'], buildDir, 'injected-bundle.js');
 
   const testFiles =
       ['main/**/*.ts', 'test/**/*Spec.ts'].map(f => `${__dirname}/${f}`);
-  task_factory.test(prefix, testFiles);
-  task_factory.lint(prefix, ['src/injected/**/*.ts']);
+  const testTask = taskFactory.test(testFiles);
 
-  task_factory.watch(
-      prefix, ['src/injected/**/*'], ['test', 'default', 'lint']);
+  const lintTask = taskFactory.lint(['src/injected/**/*.ts']);
+
+  const compileTask = taskFactory.compile(
+      (series, parallel) => series(cleanTask, parallel(tsTask, sassTask)));
+
+  const compileProdTask = taskFactory.compileProd(
+      (series, parallel) =>
+          series(cleanTask, parallel(tsProdTask, sassProdTask)));
+
+  const watchTask = taskFactory.watch(
+      ['src/injected/**/*'], [testTask, compileTask, lintTask]);
 }

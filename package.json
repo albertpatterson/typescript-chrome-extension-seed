@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "gulp default",
-    "build-prod": "gulp prod",
+    "build": "gulp build",
+    "build-prod": "gulp build-prod",
     "compile": "gulp compile",
     "compile-prod": "gulp compile-prod",
     "test": "gulp test",

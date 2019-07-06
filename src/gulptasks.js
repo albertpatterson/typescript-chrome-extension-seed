@@ -1,6 +1,18 @@
-module.exports = function(prefix, task_factory) {
+module.exports = function(createTaskFactory) {
+  const taskFactory = createTaskFactory('manifest');
+
   const buildDir = 'dist/unpacked';
 
-  task_factory.clean(prefix, [buildDir]);
-  task_factory.copy(prefix, ['src/manifest.json', 'src/icon.png'], buildDir);
+  const cleanTask = taskFactory.clean([buildDir]);
+
+  const copyTask =
+      taskFactory.copy(['src/manifest.json', 'src/icon.png'], buildDir);
+
+  const compileTask =
+      taskFactory.compile((series, paralell) => series(cleanTask, copyTask));
+
+  const compileProdTask = taskFactory.compileProd(
+      (series, paralell) => series(cleanTask, copyTask));
+
+  taskFactory.watch(['src/*'], [compileTask]);
 }

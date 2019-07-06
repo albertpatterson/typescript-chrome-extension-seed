@@ -1,21 +1,26 @@
-module.exports = function(prefix, task_factory) {
+module.exports = function(createTaskFactory) {
+  const taskFactory = createTaskFactory('background');
   const buildDir = 'dist/unpacked/background';
 
-  task_factory.clean(prefix, [buildDir]);
+  const cleanTask = taskFactory.clean([buildDir]);
 
-  task_factory.ts(
-      prefix, './', ['src/background/main/main.ts'], buildDir,
-      'background-bundle.js');
-  task_factory.tsProd(
-      prefix, './', ['src/background/main/main.ts'], buildDir,
-      'background-bundle.js');
-
+  const tsTask = taskFactory.ts(
+      './', ['src/background/main/main.ts'], buildDir, 'background-bundle.js');
+  const tsProdTask = taskFactory.tsProd(
+      './', ['src/background/main/main.ts'], buildDir, 'background-bundle.js');
 
   const testFiles =
       ['main/**/*.ts', 'test/**/*Spec.ts'].map(f => `${__dirname}/${f}`);
-  task_factory.test(prefix, testFiles);
-  task_factory.lint(prefix, ['src/background/**/*.ts']);
+  const testTask = taskFactory.test(testFiles);
 
-  task_factory.watch(
-      prefix, ['src/background/**/*'], ['test', 'default', 'lint']);
+  const lintTask = taskFactory.lint(['src/background/**/*.ts']);
+
+  const compileTask =
+      taskFactory.compile((series, paralell) => series(cleanTask, tsTask));
+
+  const compileProdTask = taskFactory.compileProd(
+      (series, paralell) => series(cleanTask, tsProdTask));
+
+
+  taskFactory.watch(['src/background/**/*'], [testTask, compileTask, lintTask]);
 }

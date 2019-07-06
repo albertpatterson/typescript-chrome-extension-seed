@@ -1,26 +1,38 @@
-module.exports = function(prefix, task_factory) {
+module.exports = function(createTaskFactory) {
+  const taskFactory = createTaskFactory('popup');
   const buildDir = 'dist/unpacked/popup/';
 
-  task_factory.clean(prefix, [buildDir]);
+  const cleanTask = taskFactory.clean([buildDir]);
 
-  task_factory.sass(
-      prefix, 'src/popup/styles/**/*.scss', buildDir, 'popup-styles.css');
-  task_factory.sassProd(
-      prefix, 'src/popup/styles/**/*.scss', buildDir, 'popup-styles.css');
+  const sassTask = taskFactory.sass(
+      'src/popup/styles/**/*.scss', buildDir, 'popup-styles.css');
 
-  task_factory.html(prefix, 'src/popup/popup.html', buildDir);
-  task_factory.htmlProd(prefix, 'src/popup/popup.html', buildDir);
+  const sassProdTask = taskFactory.sassProd(
+      'src/popup/styles/**/*.scss', buildDir, 'popup-styles.css');
 
-  task_factory.ts(
-      prefix, './', ['src/popup/main/main.ts'], buildDir, 'popup-bundle.js');
-  task_factory.tsProd(
-      prefix, './', ['src/popup/main/main.ts'], buildDir, 'popup-bundle.js');
+  const htmlTask = taskFactory.html('src/popup/popup.html', buildDir);
 
+  const htmlProdTask = taskFactory.htmlProd('src/popup/popup.html', buildDir);
+
+  const tsTask = taskFactory.ts(
+      './', ['src/popup/main/main.ts'], buildDir, 'popup-bundle.js');
+
+  const tsProdTask = taskFactory.tsProd(
+      './', ['src/popup/main/main.ts'], buildDir, 'popup-bundle.js');
 
   const testFiles =
       ['main/**/*.ts', 'test/**/*Spec.ts'].map(f => `${__dirname}/${f}`);
-  task_factory.test(prefix, testFiles);
-  task_factory.lint(prefix, ['src/popup/**/*.ts']);
+  const testTask = taskFactory.test(testFiles);
 
-  task_factory.watch(prefix, ['src/popup/**/*'], ['test', 'default', 'lint']);
+  const lintTask = taskFactory.lint(['src/popup/**/*.ts']);
+
+  const compileTask = taskFactory.compile(
+      (series, parallel) =>
+          series(cleanTask, parallel(tsTask, htmlTask, sassTask)));
+
+  const compileProdTask = taskFactory.compileProd(
+      (series, parallel) =>
+          series(cleanTask, parallel(tsProdTask, htmlProdTask, sassProdTask)));
+
+  taskFactory.watch(['src/popup/**/*'], [testTask, compileTask, lintTask]);
 }

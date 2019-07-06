@@ -18,7 +18,6 @@ class TaskManager {
   constructor(gulp) {
     this.gulp = gulp;
     this.taskFactories = [];
-
     this._registerTasks();
   }
 
@@ -92,10 +91,14 @@ class TaskFactory {
     this.gulp = gulp;
     this.prefix = prefix;
 
-    this.fullTestSuiteOpts = {
-      files: [],
-      taskDefined: false,
+    this.tasks = {
+      compile: [],
+      compileProd: [],
+      lint: [],
+      watch: [],
     };
+
+    this.testFiles = [];
   }
 
   _makeTaskName(task) {
@@ -214,6 +217,7 @@ class TaskFactory {
     const taskName = this._makeTaskName('compile');
     const task = setup(this.gulp.series, this.gulp.parallel);
     this.gulp.task(taskName, task);
+    console.log(this);
     this.tasks.compile.push(taskName);
     return taskName;
   }
@@ -240,14 +244,6 @@ class TaskFactory {
     this.gulp.task(taskName, task);
     return taskName;
   }
-
-  tasks = {
-    compile: [],
-    compileProd: [],
-    lint: [],
-    watch: [],
-  };
-  testFiles = [];
 }
 
 module.exports = TaskManager;

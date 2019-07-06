@@ -3,3 +3,4 @@ dist
 junk
 .vscode
 coverage
+.DS_Store

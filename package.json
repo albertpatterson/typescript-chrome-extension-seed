@@ -1,7 +1,7 @@
 {
-  "name": "basic-ext",
+  "name": "typescript-chrome_extension-seed",
   "version": "1.0.0",
-  "description": "",
+  "description": "A seed for a Chrome extension build using typescript",
   "main": "index.js",
   "scripts": {
     "build": "gulp build",
@@ -12,8 +12,12 @@
     "lint": "gulp lint",
     "watch": "gulp watch"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Albert Patterson",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/albertpatterson/typescript-chrome-extension-seed"
+  },
   "devDependencies": {
     "@types/chai": "^4.2.5",
     "@types/mocha": "^5.2.7",
